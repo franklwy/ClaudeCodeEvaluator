@@ -45,16 +45,13 @@ class TotalTimeEvaluator(BaseEvaluator):
         
         self._raw_value = total_time
         
-        if total_time <= 0:
-            self._detail = "推理时间为0"
-            return 1.0
-        
-        if total_time >= max_time:
-            score = 0.0
-            self._detail = f"总计 {total_time:.1f}s ≥ {max_time}s（超时）"
+        if total_time <= 60:
+            score = 1.0
+            self._detail = f"总计 {total_time:.1f}s (≤1分钟, 满分)"
         else:
-            score = 1 - total_time / max_time
-            self._detail = f"总计 {total_time:.1f}s"
+            minutes = total_time / 60.0
+            score = 1.0 / minutes
+            self._detail = f"总计 {total_time:.1f}s ({minutes:.1f}分钟, 得分1/{minutes:.1f})"
         
         return max(0.0, min(1.0, score))
 

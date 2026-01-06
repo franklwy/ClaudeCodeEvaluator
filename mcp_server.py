@@ -50,6 +50,7 @@ async def evaluate_session(
     project_path: str = None,
     include_agents: bool = False,
     first_completed: bool = None,
+    completion_rate: float = None,
     format: str = "table"
 ) -> str:
     """
@@ -60,6 +61,7 @@ async def evaluate_session(
         project_path: 项目路径（可选）
         include_agents: 是否包含agent文件（默认false）
         first_completed: 首次请求是否完成需求（可选，不提供则自动判断）
+        completion_rate: 任务最终完成度（可选，0-100，默认100）
         format: 输出格式 (table, json, markdown)，默认 table
     """
     logger.info(f"Tool Call: evaluate_session(session_id={session_id}, format={format})")
@@ -88,7 +90,7 @@ async def evaluate_session(
         # 核心逻辑 (直接调用，FastMCP 会捕获 stdout/stderr)
         # 但为了保险，我们还是尽量不让它打印到控制台
         session = parse_session_file(session_file, include_agents=include_agents)
-        results = core_evaluate_session(session, first_completed)
+        results = core_evaluate_session(session, first_completed, completion_rate)
         report = generate_report(session, results)
         
         reporter = ScoreReporter(report, session)

@@ -24,17 +24,19 @@ from .evaluators import (
     TotalTimeEvaluator,
     CodeSizeEvaluator,
     CodeQualityEvaluator,
+    TaskCompletionEvaluator,
 )
 from .reporter import ScoreReporter, generate_report
 
 
-def evaluate_session(session: SessionData, first_completed: Optional[bool] = None) -> List[EvaluationResult]:
+def evaluate_session(session: SessionData, first_completed: Optional[bool] = None, completion_rate: Optional[float] = None) -> List[EvaluationResult]:
     """
     对会话进行评分
     
     Args:
         session: 会话数据
         first_completed: 是否首次完成（可选，用于手动指定）
+        completion_rate: 任务最终完成度（可选，0-100）
     
     Returns:
         评分结果列表
@@ -76,6 +78,14 @@ def evaluate_session(session: SessionData, first_completed: Optional[bool] = Non
     # 6. 代码质量
     code_quality_eval = CodeQualityEvaluator(SCORING_CONFIG.get('code_quality', {}))
     results.append(code_quality_eval.get_result(session))
+    
+    # 7. 任务最终完成度
+    task_completion_eval = TaskCompletionEvaluator(SCORING_CONFIG.get('task_completion', {}))
+    if completion_rate is not None:
+        # 手动指定
+        # 更新配置中的默认值，以便 evaluate 方法使用
+        task_completion_eval.config['completion_rate'] = float(completion_rate)
+    results.append(task_completion_eval.get_result(session))
     
     return results
 
@@ -127,18 +137,34 @@ def cmd_evaluate(args):
     
     # 处理首次完成度
     first_completed = None
+    completion_rate = None
+
     if args.first_completed:
         first_completed = args.first_completed.lower() in ('yes', 'true', '1', 'y')
-    elif args.interactive:
-        # 交互式询问
-        print("请确认: 首次提示词是否完成了需求？")
-        if session.user_prompts:
-            print(f"  首次提示词: {session.user_prompts[0].content[:100] if session.user_prompts[0].content else '(空)'}")
-        response = input("输入 y/n: ").strip().lower()
-        first_completed = response in ('y', 'yes', '1')
+    
+    if args.completion_rate is not None:
+        completion_rate = args.completion_rate
+
+    if args.interactive:
+        # 交互式询问首次完成
+        if first_completed is None:
+            print("请确认: 首次提示词是否完成了需求？")
+            if session.user_prompts:
+                print(f"  首次提示词: {session.user_prompts[0].content[:100] if session.user_prompts[0].content else '(空)'}")
+            response = input("输入 y/n: ").strip().lower()
+            first_completed = response in ('y', 'yes', '1')
+        
+        # 交互式询问最终完成度
+        if completion_rate is None:
+            print("\n请确认: 任务最终完成度是多少？(0-100)")
+            try:
+                rate_str = input("输入百分比(默认100): ").strip()
+                completion_rate = float(rate_str) if rate_str else 100.0
+            except ValueError:
+                completion_rate = 100.0
     
     # 执行评分
-    results = evaluate_session(session, first_completed)
+    results = evaluate_session(session, first_completed, completion_rate)
     
     # 生成报告
     report = generate_report(session, results)
@@ -249,6 +275,7 @@ def main():
     eval_parser.add_argument('--format', choices=['table', 'json', 'markdown'], default='table', help='输出格式')
     eval_parser.add_argument('--output', '-o', help='输出文件路径')
     eval_parser.add_argument('--first-completed', help='指定首次是否完成 (yes/no)')
+    eval_parser.add_argument('--completion-rate', type=float, help='指定任务最终完成度 (0-100)')
     eval_parser.add_argument('--interactive', '-i', action='store_true', help='交互式确认首次完成度')
     eval_parser.add_argument('--no-agents', action='store_true', help='不包含agent文件')
     eval_parser.add_argument('--quiet', '-q', action='store_true', help='安静模式，只输出报告不输出进度信息')

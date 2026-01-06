@@ -33,15 +33,12 @@ class PromptCountEvaluator(BaseEvaluator):
             self._detail = "无提示词"
             return 0.0
         
-        if count <= optimal:
+        if count <= 1:
             score = 1.0
-            self._detail = f"共 {count} 次提示（最优）"
-        elif count >= max_count:
-            score = 0.0
-            self._detail = f"共 {count} 次提示（超过上限 {max_count}）"
-        else:
-            score = 1 - (count - optimal) / (max_count - optimal)
             self._detail = f"共 {count} 次提示"
+        else:
+            score = 1.0 / count
+            self._detail = f"共 {count} 次提示 (得分 1/{count})"
         
         return max(0.0, min(1.0, score))
 

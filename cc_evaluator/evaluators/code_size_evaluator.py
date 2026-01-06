@@ -35,12 +35,14 @@ class CodeSizeEvaluator(BaseEvaluator):
             self._detail = "无代码生成"
             return 1.0  # 没有生成代码，可能是纯问答
         
-        if total_lines >= max_lines:
-            score = 0.0
-            self._detail = f"生成 {total_lines} 行 ≥ {max_lines}（过多）"
-        else:
-            score = 1 - total_lines / max_lines
-            self._detail = f"生成 {total_lines} 行"
+        # 优化规则：分数 = 100 / 行数 (设置100行为基准，避免分数过低)
+        # 如果行数 < 100，则按 100 处理 (满分)
+        baseline = self.config.get('baseline_lines', 100)
+        
+        effective_lines = max(baseline, total_lines)
+        score = baseline / effective_lines
+        
+        self._detail = f"生成 {total_lines} 行 (基准{baseline}行, 得分 {baseline}/{effective_lines:.0f})"
         
         return max(0.0, min(1.0, score))
 

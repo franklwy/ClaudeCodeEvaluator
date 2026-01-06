@@ -8,6 +8,7 @@ from .prompt_count_evaluator import PromptCountEvaluator
 from .total_time_evaluator import TotalTimeEvaluator
 from .code_size_evaluator import CodeSizeEvaluator
 from .code_quality_evaluator import CodeQualityEvaluator
+from .task_completion_evaluator import TaskCompletionEvaluator
 
 # 所有评分器
 ALL_EVALUATORS = [
@@ -17,6 +18,7 @@ ALL_EVALUATORS = [
     TotalTimeEvaluator,
     CodeSizeEvaluator,
     CodeQualityEvaluator,
+    TaskCompletionEvaluator,
 ]
 
 __all__ = [
@@ -27,6 +29,7 @@ __all__ = [
     'TotalTimeEvaluator',
     'CodeSizeEvaluator',
     'CodeQualityEvaluator',
+    'TaskCompletionEvaluator',
     'ALL_EVALUATORS',
 ]
 
