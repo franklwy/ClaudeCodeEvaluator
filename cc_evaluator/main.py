@@ -45,23 +45,47 @@ def evaluate_session(session: SessionData, first_completed: Optional[bool] = Non
     
     # 1. 首次需求完成度
     completion_eval = CompletionEvaluator(SCORING_CONFIG.get('first_completion', {}))
+    is_first_success = False  # 标记是否首次成功
+
     if first_completed is not None:
         # 手动指定
         completion_eval._raw_value = first_completed
         completion_eval._detail = "✓ 用户确认首次完成" if first_completed else "✗ 用户确认首次未完成"
+        
+        score = 1.0 if first_completed else 0.0
+        is_first_success = bool(first_completed)
+        
         results.append(EvaluationResult(
             name=completion_eval.name,
-            score=1.0 if first_completed else 0.0,
+            score=score,
             weight=completion_eval.weight,
             raw_value=first_completed,
             detail=completion_eval._detail
         ))
     else:
-        results.append(completion_eval.get_result(session))
+        result = completion_eval.get_result(session)
+        is_first_success = (result.score >= 1.0) # 如果得分是1.0，说明判定为成功
+        results.append(result)
     
     # 2. 首次完成时间
     first_time_eval = FirstTimeEvaluator(SCORING_CONFIG.get('first_time', {}))
-    results.append(first_time_eval.get_result(session))
+    
+    # 如果首次未完成，首次时间强制为0分
+    if not is_first_success:
+        # 先获取原始结果以拿到时间数据
+        temp_result = first_time_eval.get_result(session)
+        
+        # 覆盖分数
+        first_time_eval._detail = f"{temp_result.detail} (但首次未完成，强制0分)"
+        results.append(EvaluationResult(
+            name=first_time_eval.name,
+            score=0.0,
+            weight=first_time_eval.weight,
+            raw_value=temp_result.raw_value,
+            detail=first_time_eval._detail
+        ))
+    else:
+        results.append(first_time_eval.get_result(session))
     
     # 3. 提示词次数
     prompt_eval = PromptCountEvaluator(SCORING_CONFIG.get('prompt_count', {}))

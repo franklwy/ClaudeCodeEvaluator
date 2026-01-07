@@ -56,6 +56,9 @@ async def evaluate_session(
     """
     评估 Claude Code 会话的表现。
     
+    **重要**: 此工具返回完整的评分报告表格，请务必将返回的内容【完整、原样】输出给用户，
+    不要只提取摘要或总结，确保用户能看到详细的评分表格。
+    
     Args:
         session_id: 会话ID。如果不提供，默认评估【当前最新的】会话。
         project_path: 项目路径（可选）
@@ -63,6 +66,9 @@ async def evaluate_session(
         first_completed: 首次请求是否完成需求（可选，不提供则自动判断）
         completion_rate: 任务最终完成度（可选，0-100，默认100）
         format: 输出格式 (table, json, markdown)，默认 table
+    
+    Returns:
+        完整的评分报告表格（包含所有维度的详细得分和说明）
     """
     logger.info(f"Tool Call: evaluate_session(session_id={session_id}, format={format})")
     

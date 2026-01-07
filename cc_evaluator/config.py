@@ -8,7 +8,7 @@ from pathlib import Path
 CLAUDE_PROJECTS_DIR = Path(os.path.expanduser("~/.claude/projects"))
 
 # 评分时要过滤的提示词关键词（不计入统计）
-FILTER_KEYWORDS = ['评分', '评估', '打分', 'score', 'evaluate', 'eval', 'cc-eval']
+FILTER_KEYWORDS = ['评分', '评估', '打分', 'score', 'evaluate', 'eval', 'cc-eval', '打个分']
 
 # 评分参数配置
 SCORING_CONFIG = {
