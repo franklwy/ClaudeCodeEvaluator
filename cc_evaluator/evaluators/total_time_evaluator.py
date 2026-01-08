@@ -22,6 +22,7 @@ class TotalTimeEvaluator(BaseEvaluator):
         return "总推理时间"
     
     def evaluate(self, session: SessionData) -> float:
+        from ..config import FILTER_KEYWORDS
         max_time = self.config.get('max_time', 60.0)
         
         if not session.messages:
@@ -34,13 +35,24 @@ class TotalTimeEvaluator(BaseEvaluator):
         
         total_time = 0.0
         last_ts = None
+        last_user_content = None
         
         for msg in sorted_messages:
+            # 记录最后一条用户消息内容，用于判断是否为评分请求
+            if msg.msg_type == MessageType.USER and not msg.is_tool_result:
+                last_user_content = msg.content
+
             if msg.msg_type == MessageType.ASSISTANT and last_ts:
-                diff = (msg.timestamp - last_ts).total_seconds()
-                # 只计算合理范围内的时间差
-                if 0 < diff < 120:  # 单次响应不超过2分钟
-                    total_time += diff
+                # 如果前一条用户消息是评分请求，则忽略这次AI响应的时间
+                if last_user_content and SessionData._is_eval_prompt(last_user_content, FILTER_KEYWORDS):
+                    # 更新时间戳但不仅仅累加时间
+                    pass
+                else:
+                    diff = (msg.timestamp - last_ts).total_seconds()
+                    # 只计算合理范围内的时间差
+                    if 0 < diff < 120:  # 单次响应不超过2分钟
+                        total_time += diff
+            
             last_ts = msg.timestamp
         
         self._raw_value = total_time
