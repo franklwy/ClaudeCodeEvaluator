@@ -122,7 +122,7 @@ class ScoreReporter:
         
         # 总分
         lines.append("╠" + "═" * inner_width + "╣")
-        footer = "║" + pad_text(" 综合得分", col1_w) + pad_text(f" {self.report.total_score:.3f}", col2_w) + pad_text(" (算术平均)", col3_w) + "║"
+        footer = "║" + pad_text(" 综合得分", col1_w) + pad_text(f" {self.report.total_score:.3f}", col2_w) + pad_text(" (总分)", col3_w) + "║"
         lines.append(footer)
         lines.append("╚" + "═" * inner_width + "╝")
         

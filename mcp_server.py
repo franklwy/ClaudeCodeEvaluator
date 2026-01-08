@@ -96,6 +96,12 @@ async def evaluate_session(
         # 核心逻辑 (直接调用，FastMCP 会捕获 stdout/stderr)
         # 但为了保险，我们还是尽量不让它打印到控制台
         session = parse_session_file(session_file, include_agents=include_agents)
+        
+        # 确保是 SessionData 对象
+        if not isinstance(session, SessionData):
+            logger.error(f"parse_session_file returned unexpected type: {type(session)}")
+            return "内部错误: 会话解析失败"
+
         results = core_evaluate_session(session, first_completed, completion_rate)
         report = generate_report(session, results)
         
@@ -107,7 +113,7 @@ async def evaluate_session(
         else:
             output = reporter.to_table()
             
-        logger.info("Evaluation successful")
+        logger.info(f"Evaluation successful, returning report of length {len(output)}")
         return output
 
     except Exception as e:
@@ -127,7 +133,14 @@ async def list_sessions(project_path: str = None, limit: int = 10) -> str:
     logger.info(f"Tool Call: list_sessions(limit={limit})")
     
     try:
-        sessions = core_list_sessions(project_path, limit)
+        import inspect
+        
+        # 检查是否为协程（防御性编程）
+        if inspect.iscoroutinefunction(core_list_sessions):
+            sessions = await core_list_sessions(project_path, limit)
+        else:
+            sessions = core_list_sessions(project_path, limit)
+            
         if not sessions:
             return "没有找到任何会话"
 

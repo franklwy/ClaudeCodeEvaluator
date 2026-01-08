@@ -141,12 +141,11 @@ class EvaluationReport:
     total_score: float = 0.0
     
     def compute_total_score(self):
-        """计算综合得分（算术平均）"""
+        """计算综合得分（总分）"""
         if not self.results:
             self.total_score = 0.0
             return
         
-        # 简单算术平均，不使用权重
-        total_score = sum(r.score for r in self.results)
-        self.total_score = total_score / len(self.results)
+        # 计算总分（求和）
+        self.total_score = sum(r.score for r in self.results)
 

@@ -23,7 +23,6 @@ from .evaluators import (
     PromptCountEvaluator,
     TotalTimeEvaluator,
     CodeSizeEvaluator,
-    CodeQualityEvaluator,
     TaskCompletionEvaluator,
 )
 from .reporter import ScoreReporter, generate_report
@@ -99,11 +98,7 @@ def evaluate_session(session: SessionData, first_completed: Optional[bool] = Non
     code_size_eval = CodeSizeEvaluator(SCORING_CONFIG.get('code_size', {}))
     results.append(code_size_eval.get_result(session))
     
-    # 6. 代码质量
-    code_quality_eval = CodeQualityEvaluator(SCORING_CONFIG.get('code_quality', {}))
-    results.append(code_quality_eval.get_result(session))
-    
-    # 7. 任务最终完成度
+    # 6. 任务最终完成度
     task_completion_eval = TaskCompletionEvaluator(SCORING_CONFIG.get('task_completion', {}))
     if completion_rate is not None:
         # 手动指定

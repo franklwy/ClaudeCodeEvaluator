@@ -43,16 +43,6 @@ SCORING_CONFIG = {
     'code_size': {
         'weight': 1.0,
         'max_lines': 500       # 超过此行数得0分
-    },
-    
-    # 维度6: 代码质量
-    'code_quality': {
-        'weight': 1.0,
-        'complexity_weight': 0.4,      # 圈复杂度权重
-        'maintainability_weight': 0.4,  # 可维护性权重
-        'lint_weight': 0.2,            # Lint错误权重
-        'max_complexity': 20,          # 最大允许圈复杂度
-        'max_lint_errors': 10          # 最大允许Lint错误数
     }
 }
 

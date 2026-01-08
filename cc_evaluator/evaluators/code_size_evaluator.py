@@ -26,8 +26,6 @@ class CodeSizeEvaluator(BaseEvaluator):
         return "代码规模"
     
     def evaluate(self, session: SessionData) -> float:
-        max_lines = self.config.get('max_lines', 500)
-        
         total_lines = session.total_lines
         self._raw_value = total_lines
         
@@ -35,14 +33,10 @@ class CodeSizeEvaluator(BaseEvaluator):
             self._detail = "无代码生成"
             return 1.0  # 没有生成代码，可能是纯问答
         
-        # 优化规则：分数 = 100 / 行数 (设置100行为基准，避免分数过低)
-        # 如果行数 < 100，则按 100 处理 (满分)
-        baseline = self.config.get('baseline_lines', 100)
+        # 新规则：分数 = 1 / 代码行数
+        score = 1.0 / total_lines
         
-        effective_lines = max(baseline, total_lines)
-        score = baseline / effective_lines
+        self._detail = f"生成 {total_lines} 行 (得分 1/{total_lines} = {score:.6f})"
         
-        self._detail = f"生成 {total_lines} 行 (基准{baseline}行, 得分 {baseline}/{effective_lines:.0f})"
-        
-        return max(0.0, min(1.0, score))
+        return score
 
